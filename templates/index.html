@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#110e13">
+<meta name="description" content="Кто ты из «Очень странных дел»? Пятнадцать ситуаций из Хокинса и шесть характеров.">
+<title>Кто ты из «Очень странных дел»? · Хокинс</title>
+<link rel="icon" href="{{ url_for('static', path='/favicon.png') }}" type="image/png">
+<link rel="stylesheet" href="{{ url_for('static', path='/site.css') }}">
+<script src="{{ url_for('static', path='/quiz.js') }}" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="header">
+    <div class="wrap header-inner">
+        <a href="#main" class="brand"><span aria-hidden="true"></span> ХОКИНС <small> / ИНДИАНА</small></a>
+        <nav aria-label="Навигация"><a href="#quiz">Тест</a><a href="#profiles">Герои</a><a href="#about">О проекте</a></nav>
+    </div>
+</header>
+<main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-inner">
+            <div class="hero-content">
+                <p class="kicker">ХОКИНС, ИНДИАНА <span>·</span> 1980-е</p>
+                <h1 id="hero-title">Кто ты из<br><em>«Очень<br> странных дел»?</em></h1>
+                <p>В Хокинсе характер раскрывается, когда гаснет свет. Пройди 15 ситуаций и узнай, с кем из героев у тебя больше общего.</p>
+                <div class="hero-actions"><a class="button primary" href="#quiz">Начать тест</a><a class="plain" href="#profiles">Посмотреть героев</a></div>
+                <ul class="facts"><li>15 вопросов</li><li>6 персонажей</li><li>Без спойлеров</li></ul>
+            </div>
+        </div>
+    </section>
+
+    {% if settings.SITE_ANNOUNCEMENT %}
+    <aside class="wrap custom" aria-label="Объявление">{{ settings.SITE_ANNOUNCEMENT }}</aside>
+    {% endif %}
+
+    <section class="wrap section" id="quiz" aria-labelledby="quiz-title">
+        <div class="heading"><p class="kicker">ТЕСТ НА ХАРАКТЕР</p><h2 id="quiz-title">Испытание Хокинса</h2><p>Выбирай поступок, который ближе тебе в реальной жизни.</p></div>
+        {% if settings.SITE_EVENT %}<p class="event">{{ settings.SITE_EVENT }}</p>{% endif %}
+        <div class="quiz-layout">
+            <aside class="route" aria-label="Главы теста">
+                <h3>Три главы</h3>
+                <ol>
+                    {% for chapter in quiz.chapters %}
+                    <li{% if loop.first %} aria-current="step"{% endif %}><span aria-hidden="true">0{{ loop.index }}</span><div>{{ chapter }}<small>Вопросы {{ loop.index0 * 5 + 1 }}–{{ loop.index * 5 }}</small></div></li>
+                    {% endfor %}
+                </ol>
+            </aside>
+            <div class="quiz-panel" id="quiz-panel">
+                <div id="play">
+                    <div class="progress-line"><p id="question-count"></p><span id="answered"></span></div>
+                    <progress id="progress" aria-label="Отвечено вопросов" max="{{ quiz.questions|length }}" value="0"></progress>
+                    <form id="question-form">
+                        <fieldset><legend id="question" tabindex="-1"></legend><div id="answers"></div></fieldset>
+                        <div class="quiz-actions"><button type="button" class="button secondary" id="back">Назад</button><button type="submit" class="button primary" id="next" disabled>Дальше</button></div>
+                    </form>
+                </div>
+                <section id="result" hidden aria-labelledby="result-title">
+                    <div id="portrait"></div>
+                    {% if settings.SITE_RESULT_NOTE %}<p class="custom">{{ settings.SITE_RESULT_NOTE }}</p>{% endif %}
+                    <div class="quiz-actions"><button type="button" class="button secondary" id="restart">Пройти заново</button><button type="button" class="button primary" id="share">Скопировать результат</button></div>
+                    <p id="share-status" role="status"></p>
+                </section>
+                <noscript><p class="custom">Чтобы пройти тест, включи JavaScript в браузере.</p></noscript>
+            </div>
+        </div>
+    </section>
+    <section class="profiles section" id="profiles" aria-labelledby="profiles-title">
+        <div class="wrap">
+            <div class="heading"><p class="kicker">ПЕРСОНАЖИ</p><h2 id="profiles-title">Шестёрка из Хокинса</h2><p>У каждого свой способ справляться с неизвестным.</p></div>
+            <div class="profile-grid">
+                {% for profile in quiz.profiles.values() %}
+                <article class="profile" style="--accent:{{ profile[6] }}">
+                    <span class="monogram" aria-hidden="true">{{ profile[7] }}</span>
+                    <p class="trait">{{ profile[5] }}</p><h3>{{ profile[0] }}</h3><p>{{ profile[1] }}</p>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <section class="wrap section about" id="about" aria-labelledby="about-title">
+        <div class="heading"><p class="kicker">О ПРОЕКТЕ</p><h2 id="about-title">Как работает тест</h2></div>
+        <div>
+            <details open><summary>Как выбирается персонаж?</summary><p>Каждый ответ даёт очки двум персонажам за основную и дополнительную черту. При равном счёте важнее прямые совпадения. Если и они равны, решает последний ответ, который различает этих героев.</p></details>
+            <details><summary>Нужно ли знать сюжет?</summary><p>Нет. Все 15 ситуаций придуманы для теста и понятны сами по себе. В результатах нет сюжетных развязок.</p></details>
+            <details><summary>Где хранятся ответы?</summary><p>Ответы остаются в текущей вкладке, поэтому переживают перезагрузку. Тест не отправляет их на сервер.</p></details>
+            {% if show_enabled %}<aside id="show" class="show" data-url="{{ url_for('show_metadata') }}" hidden></aside>{% endif %}
+        </div>
+    </section>
+</main>
+<footer class="wrap footer">
+    <p>Хокинс · Неофициальный фан-проект по Stranger Things</p>
+    {% if settings.SITE_CONTACT %}<p>{{ settings.SITE_CONTACT }}</p>{% endif %}
+</footer>
+<script id="quiz-data" type="application/json">{{ quiz|tojson }}</script>
+</body>
+</html>
